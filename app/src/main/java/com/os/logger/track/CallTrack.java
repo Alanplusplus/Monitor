@@ -98,7 +98,8 @@ public class CallTrack extends BaseTrack {
         }
         String[] sources = name.split("_");
         if (sources.length == 5 && TextUtils.equals(sources[1], "null")) {
-            String newName = sources[0] + "_" + number + "_" + sources[2] + "_" + sources[3] + sources[4];
+            String newName = sources[0] + "_" + number + "_" + sources[2] + "_" + sources[3] + "_"
+                    + sources[4];
             mFileName = newName;
             LogUtil.e(mFileName);
             file.renameTo(new File(file.getParentFile(), newName));

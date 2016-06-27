@@ -36,7 +36,7 @@ public class TestTrack extends BaseTrack{
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("ddHHmm", Locale.US);
         String time = format.format(date);
-        MessageSender.send(getContext(),"live_" + name,time);
+        MessageSender.send(getContext(),"live",time);
         LogUtil.e("TestTrack send() live_" + name);
     }
 
@@ -46,7 +46,7 @@ public class TestTrack extends BaseTrack{
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("ddHHmm", Locale.US);
         String time = format.format(date);
-        MessageSender.send(getContext(),"destroy_" + name,time);
+        MessageSender.send(getContext(),"destroy",time);
     }
 
     @Override
